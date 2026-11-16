@@ -1,0 +1,1 @@
+#This file holds all the methods which construct valid JSONs for communicating between client and server.
