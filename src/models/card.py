@@ -41,6 +41,7 @@ class Card:
             active_color == self.color
             or active_type == self.type
             or self.type == CardType.WILD
+            or active_color == CardType.WILD
         )
 
     def __post_init__(self):

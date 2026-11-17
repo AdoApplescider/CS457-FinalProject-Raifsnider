@@ -10,6 +10,7 @@ from src.models.card import Card, CardType, Color
 @dataclass
 class Player:
     id: int
+    is_active: bool = True
     hand: list[Card] = field(default_factory=list)
 
     def __len__(self):
