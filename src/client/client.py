@@ -6,6 +6,10 @@
 import argparse
 import socket
 import sys
+import threading
+import queue
+
+from src.client.server_handler import server_handler
 
 def parse_args():
 
@@ -74,13 +78,42 @@ def connect_to_server(addresses):
 
     raise ConnectionError("Could not establish a connection to the server.")
 
-
 def main():
     args = parse_args()
     addresses = resolve_server(args.i, args.p)
     client_socket = connect_to_server(addresses)
 
-    # TODO: Start client communication handler
+    outgoing = queue.Queue()
+    incoming = queue.Queue()
+    stop = threading.Event()
+
+    connection_handler = threading.Thread(
+        target=server_handler,
+        args=(
+            client_socket,
+            outgoing,
+            incoming,
+            stop
+        ),
+        daemon=True
+    )
+    connection_handler.start()
+
+    init_message = incoming.get()
+    my_id = -1
+
+    if init_message.get("msg_type") == "CONNECTED":
+        my_id = init_message.get("player_id")
+        print(f"Server connection confirmed! You are player {my_id}")
+    else:
+        print(init_message.get("msg"))
+        print("Connection to server rejected! Closing client connection...")
+        stop.set()
+        connection_handler.join(timeout=2)
+        sys.exit(0)
+
+    # TODO: Start the UI consumer thread
+    # TODO: Handle user inputs
 
 if __name__ == "__main__":
     main()
