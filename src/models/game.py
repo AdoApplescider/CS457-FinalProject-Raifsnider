@@ -25,6 +25,7 @@ class Game:
 
         player = Player(len(self.players) + 1)
         self.players.append(player)
+        return player
 
 
     def remove_player(self):
