@@ -4,7 +4,7 @@ from src.client.game_state import GameState
 
 def ui_consumer(incoming, msg, my_id, stop):
     state = GameState.from_msg(msg)
-    notification = "Type in the prompt below. (placeholder)"
+    notification = "Type 'help' below for info on the possible inputs!"
     print(render_state(state, my_id, notification))
 
     while not stop.is_set():
@@ -15,13 +15,24 @@ def ui_consumer(incoming, msg, my_id, stop):
             break
         elif msg.get("msg_type") == "STATE_UPDATE":
             state = GameState.from_msg(msg)
-            print(render_state(state, my_id, notification))
         elif msg.get("msg_type") == "ERROR":
             notification = "ERROR: " + msg.get("msg")
         elif msg.get("msg_type") == "MESSAGE":
             notification = msg.get("msg")
+        elif msg.get("msg_type") == "GAME_OVER":
+            print(render_scoreboard(msg, my_id))
+            stop.set()
         else:
             notification = f"ERROR: Unrecognized message type {msg.get("msg_type")} recieved."
+        print(render_state(state, my_id, notification))
+        notification = "Type 'help' below for info on the possible inputs!"
+
+def ordinal(n):
+    if 10 <= n % 100 <= 20:
+        suffix = "th"
+    else:
+        suffix = {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+    return f"{n}{suffix}"
 
 def plural(n, word):
     return f"{n} {word}" if n == 1 else f"{n} {word}s"
@@ -59,3 +70,23 @@ def render_state(state, my_id, notification=""):
         notification_line,
         "------------------",
     ])
+
+def render_scoreboard(msg, my_id):
+    scores = msg["scores"]
+    lines = ["===== FINAL SCORES ====="]
+
+    placement = 0
+    prev_size = None
+    for position, entry in enumerate(scores, start=1):
+        pid = entry["id"]
+        size = entry["hand_size"]
+
+        if size != prev_size:
+            placement = position
+            prev_size = size
+
+        name = "You" if pid == my_id else f"Player {pid}"
+        lines.append(f"{ordinal(placement)}: {name} - {plural(size, 'card')} left")
+
+    lines.append("========================")
+    return "\n".join(lines)

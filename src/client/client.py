@@ -8,6 +8,7 @@ import socket
 import sys
 import threading
 import queue
+import time
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.patch_stdout import patch_stdout
@@ -180,6 +181,10 @@ def main():
 
     while not stop.is_set():
         cli_prompt(outgoing, stop)
+
+    time.sleep(2)
+
+    sys.exit(0)
 
 if __name__ == "__main__":
     main()

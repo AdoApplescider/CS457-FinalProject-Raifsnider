@@ -8,6 +8,20 @@ def send_connected_msg(to_client, player_id):
 
     to_client.put(msg)
 
+def send_game_over(to_clients, game):
+    player_hand_sizes = sorted(
+        ({"id": p.id, "hand_size": len(p.hand)} for p in game.players),
+        key=lambda d: d["hand_size"],
+    )
+
+    msg = {
+                "msg_type": "GAME_OVER",
+                "scores": player_hand_sizes
+            }
+
+    for player in game.players:
+            to_clients[player.id].put(msg)
+
 def send_error_msg(to_client, msg, ends_conn=False):
     error = {
         "msg_type": "ERROR",

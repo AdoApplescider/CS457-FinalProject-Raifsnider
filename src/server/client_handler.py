@@ -9,7 +9,7 @@ import json
 import queue
 import socket
 
-def client_handler(from_server, to_server, client_socket, address):
+def client_handler(from_server, to_server, client_socket, address, stop):
     player_id = -1
     from_client = queue.Queue()
     receive_buffer = b""
@@ -29,7 +29,7 @@ def client_handler(from_server, to_server, client_socket, address):
         else:
             raise ValueError("Unexpected initialization message")
 
-        while (True):
+        while not stop.is_set():
             receive_buffer = receive_from_socket(client_socket, from_client, receive_buffer)
             if not from_server.empty():
                 process_server_msg(from_server, client_socket)

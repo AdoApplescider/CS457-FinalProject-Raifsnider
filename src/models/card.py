@@ -29,20 +29,18 @@ class CardType(StrEnum):
     WILD = "WILD"
     WILD_DRAW_FOUR = "WILD_DRAW_FOUR"
 
+def can_play_on(new_color, new_type, active_color, active_type) -> bool:
+    return (
+        new_type == CardType.WILD
+        or new_color == active_color
+        or new_type == active_type
+        or active_color == Color.WILD
+    )
 
 @dataclass(frozen=True)
 class Card:
     color: Color
     type: CardType
-
-    #Direction matters here, be sure you're calling new_card.can_play_on(card_in_play) and not the other way.
-    def can_play_on(self, active_color, active_type) -> bool:
-        return (
-            active_color == self.color
-            or active_type == self.type
-            or self.type == CardType.WILD
-            or active_color == CardType.WILD
-        )
 
     def to_dict(self):
         return {"color": self.color, "type": self.type}

@@ -10,6 +10,7 @@ import threading
 import queue
 import argparse
 import time
+import sys
 
 from src.models.game import Game
 from .client_handler import client_handler
@@ -50,7 +51,7 @@ def initialize_listener(args):
 
     return listener
 
-def listener_thread(listener_socket, from_clients, game):
+def listener_thread(listener_socket, from_clients, game, stop):
     listener_socket.settimeout(1.0)
 
     try:
@@ -66,7 +67,8 @@ def listener_thread(listener_socket, from_clients, game):
                         to_client,
                         from_clients,
                         client_socket,
-                        address
+                        address,
+                        stop
                     ),
                     daemon=True
                 )
@@ -129,13 +131,15 @@ def main():
     from_clients = queue.Queue()
     to_clients = {}
     game = Game()
+    stop = threading.Event()
 
     listener = threading.Thread(
         target=listener_thread,
         args=(
             listener_socket,
             from_clients,
-            game
+            game,
+            stop
         ),
         daemon=True
     )
@@ -147,6 +151,11 @@ def main():
 
     while not game.finished:
         process_game(from_clients, to_clients, game)
+
+    server_protocol.send_game_over(to_clients, game)
+    stop.set()
+    time.sleep(2)
+    sys.exit(0)
 
 if __name__ == "__main__":
     main()

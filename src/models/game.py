@@ -3,7 +3,7 @@
 #-are taken.
 
 from src.models.player import Player
-from src.models.card import Card, Color, CardType
+from src.models.card import Card, Color, CardType, can_play_on
 
 class Game:
     def __init__(self):
@@ -82,7 +82,7 @@ class Game:
                     raise ValueError("Invalid card index")
 
         if player_id != self.active_player:
-            raise ValueError(f"It is not player {player_id}'s turn! It's player {self.players[self.active_player].id}'s turn!")
+            raise ValueError(f"It is not player {player_id}'s turn! It's player {self.active_player}'s turn!")
 
         if not isinstance(card_index, int) or isinstance(card_index, bool):
             raise TypeError("Card index must be an integer")
@@ -90,17 +90,20 @@ class Game:
         player = self.get_player(player_id)
         card = player.hand[card_index]
 
-        if not card.can_play_on(self.active_color, self.active_type):
-            raise ValueError("This card does not match the card in play!")
-
         self.active_type = card.type
 
         if card.type in {CardType.WILD, CardType.WILD_DRAW_FOUR}:
+            if not chosen_color:
+                raise ValueError("Wildcards must have a selected color input! Type red, blue, yellow, or green after the card number!")
+            if not can_play_on(Color(chosen_color.upper()), card.type, self.active_color, self.active_type):
+                raise ValueError("This card does not match the card in play!")
             try:
                 self.active_color = Color(chosen_color.upper())
             except ValueError:
                 raise ValueError("Invalid chosen color")
         else:
+            if not can_play_on(card.color, card.type, self.active_color, self.active_type):
+                raise ValueError("This card does not match the card in play!")
             self.active_color = card.color
 
         self.get_player(player_id).hand.pop(card_index)
