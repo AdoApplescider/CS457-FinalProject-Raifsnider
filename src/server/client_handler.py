@@ -86,6 +86,8 @@ def process_server_msg(from_server, client_socket):
     match msg.get("msg_type"):
         case "STATE_UPDATE":
             handle_generic_msg(msg, client_socket)
+        case "GAME_OVER":
+            handle_generic_msg(msg, client_socket)
         case "ERROR":
             handle_error(msg, client_socket)
         case _:

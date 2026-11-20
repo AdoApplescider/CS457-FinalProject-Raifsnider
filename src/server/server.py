@@ -125,6 +125,12 @@ def process_game(from_clients, to_clients, game):
     else:
         server_protocol.send_error_msg(to_clients[source], "Unrecognized message type.")
 
+def join_all_other_threads(timeout=None):
+    current = threading.current_thread()
+    for t in threading.enumerate():
+        if t is not current:
+            t.join(timeout=timeout)
+
 def main():
     args = parse_args()
     listener_socket = initialize_listener(args)
@@ -153,8 +159,8 @@ def main():
         process_game(from_clients, to_clients, game)
 
     server_protocol.send_game_over(to_clients, game)
+    join_all_other_threads()
     stop.set()
-    time.sleep(2)
     sys.exit(0)
 
 if __name__ == "__main__":

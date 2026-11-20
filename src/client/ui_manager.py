@@ -17,11 +17,10 @@ def ui_consumer(incoming, msg, my_id, stop):
             state = GameState.from_msg(msg)
         elif msg.get("msg_type") == "ERROR":
             notification = "ERROR: " + msg.get("msg")
-        elif msg.get("msg_type") == "MESSAGE":
-            notification = msg.get("msg")
         elif msg.get("msg_type") == "GAME_OVER":
             print(render_scoreboard(msg, my_id))
             stop.set()
+            break
         else:
             notification = f"ERROR: Unrecognized message type {msg.get("msg_type")} recieved."
         print(render_state(state, my_id, notification))
