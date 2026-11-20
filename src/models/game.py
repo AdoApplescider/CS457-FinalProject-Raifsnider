@@ -69,6 +69,7 @@ class Game:
 
         self.active_color = Color.WILD
         self.active_type = CardType.WILD
+        self.active_player = 1
 
         self.started = True
 

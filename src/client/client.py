@@ -97,7 +97,7 @@ def cli_prompt(outgoing):
                 case ["draw", amount]:
                     send_draw_request(outgoing, amount)
                 case ["play", index, chosen_color]:
-                    print("this is not implemented yet")
+                    send_play_request(outgoing, index, chosen_color)
                 case ["help"]:
                     msg = "Accepted inputs are 'draw' and 'play. Draw takes an additional integer input which defines how many cards you draw. Play takes the index of the card you want to play, and if that card is wild, you also include the color you want to choose at the end."
                 case _:
@@ -153,9 +153,20 @@ def main():
         else:
             raise ValueError("Invalid message recieved before game start.")
 
-    #TODO: Use message to initialize ui_manager
+    ui_thread = threading.Thread(
+        target=ui_consumer,
+        args=(
+            incoming,
+            msg,
+            my_id,
+            stop
+        ),
+        daemon=True
+    )
+    ui_thread.start()
 
-    # TODO: Handle user inputs
+    while not stop.is_set():
+        cli_prompt(outgoing)
 
 if __name__ == "__main__":
     main()
