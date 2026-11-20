@@ -23,7 +23,7 @@ def send_state_update(to_clients, game):
     active_color = game.active_color.value
     active_type = game.active_type.value
     active_player = game.active_player
-    turn_order = [(game.active_player + i * game.turn_step) % n for i in range(n)]
+    turn_order = [((game.active_player + i * game.turn_step) % n) + 1 for i in range(n)]
     player_hand_sizes = [{"id": p.id, "hand_size": len(p.hand)}for p in game.players]
 
     for player in game.players:
