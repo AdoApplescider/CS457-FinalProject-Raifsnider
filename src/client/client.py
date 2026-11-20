@@ -83,25 +83,38 @@ def connect_to_server(addresses):
 
     raise ConnectionError("Could not establish a connection to the server.")
 
-
-def cli_prompt(outgoing):
+def cli_prompt(outgoing, stop):
     session = PromptSession()
 
+    HELP_TEXT = """Commands:
+        draw [n]               draw n cards (default 1)
+        play <index> [color]   play the card at that index; give a color for wild cards
+        help                   show this message"""
+
     with patch_stdout():
-        while True:
-            line = session.prompt("> ")
+        while not stop.is_set():
+            try:
+                line = session.prompt("> ")
+            except (EOFError, KeyboardInterrupt):
+                break
 
             parts = line.strip().casefold().split()
 
             match parts:
-                case ["draw", amount]:
-                    send_draw_request(outgoing, amount)
-                case ["play", index, chosen_color]:
-                    send_play_request(outgoing, index, chosen_color)
+                case []:
+                    continue
+                case ["draw"]:
+                    send_draw_request(outgoing, 1)
+                case ["draw", amount] if amount.isdigit():
+                    send_draw_request(outgoing, int(amount))
+                case ["play", index] if index.isdigit():
+                    send_play_request(outgoing, int(index), None)
+                case ["play", index, color] if index.isdigit():
+                    send_play_request(outgoing, int(index), color)
                 case ["help"]:
-                    msg = "Accepted inputs are 'draw' and 'play. Draw takes an additional integer input which defines how many cards you draw. Play takes the index of the card you want to play, and if that card is wild, you also include the color you want to choose at the end."
+                    print(HELP_TEXT)
                 case _:
-                    msg = f"Unrecognized input: {line}. Type 'help' for accepted inputs"
+                    print(f"Unrecognized input: {line!r}. Type 'help' for accepted inputs.")
 
 def main():
     args = parse_args()
@@ -166,7 +179,7 @@ def main():
     ui_thread.start()
 
     while not stop.is_set():
-        cli_prompt(outgoing)
+        cli_prompt(outgoing, stop)
 
 if __name__ == "__main__":
     main()

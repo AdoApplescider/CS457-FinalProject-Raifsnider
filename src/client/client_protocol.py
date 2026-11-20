@@ -11,7 +11,7 @@ def send_draw_request(outgoing, amount):
 def send_play_request(outgoing, card_index, chosen_color=None):
     msg = {
             "msg_type": "PLAY",
-            "card_index": card_index,
+            "card_index": (card_index - 1),
             "chosen_color": chosen_color
         }
 

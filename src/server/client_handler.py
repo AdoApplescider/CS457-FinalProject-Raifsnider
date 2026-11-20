@@ -94,7 +94,7 @@ def process_server_msg(from_server, client_socket):
 def process_client_msg(from_client, to_server, player_id):
     msg = from_client.get()
     match msg.get("msg_type"):
-            case "GAME_START" | "DRAW" | "PLACE":
+            case "GAME_START" | "DRAW" | "PLAY":
                 to_server.put((player_id, msg))
             case _:
                 to_server.put((

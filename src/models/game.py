@@ -81,8 +81,8 @@ class Game:
         if not 0 <= card_index < len(self.get_player(player_id)):
                     raise ValueError("Invalid card index")
 
-        if player_id != self.players[self.active_player].id:
-            raise ValueError("It is not this player's turn!")
+        if player_id != self.active_player:
+            raise ValueError(f"It is not player {player_id}'s turn! It's player {self.players[self.active_player].id}'s turn!")
 
         if not isinstance(card_index, int) or isinstance(card_index, bool):
             raise TypeError("Card index must be an integer")
@@ -96,15 +96,10 @@ class Game:
         self.active_type = card.type
 
         if card.type in {CardType.WILD, CardType.WILD_DRAW_FOUR}:
-            if chosen_color not in {
-                Color.RED,
-                Color.BLUE,
-                Color.GREEN,
-                Color.YELLOW
-            }:
+            try:
+                self.active_color = Color(chosen_color.upper())
+            except ValueError:
                 raise ValueError("Invalid chosen color")
-
-            self.active_color = chosen_color
         else:
             self.active_color = card.color
 
@@ -134,15 +129,15 @@ class Game:
         else:
             self.advance_turn()
 
+    def _step(self, start_id, steps=1):
+        ids = [p.id for p in self.players]
+        idx = ids.index(start_id)
+        return ids[(idx + steps * self.turn_step) % len(ids)]
+
     def advance_turn(self, draw_amount=0):
-        self.active_player = (
-            self.active_player + self.turn_step
-        ) % len(self.players)
+        self.active_player = self._step(self.active_player)
 
         if draw_amount > 0:
-            player = self.players[self.active_player]
+            player = self.get_player(self.active_player)
             player.deal(draw_amount)
-
-            self.active_player = (
-                self.active_player + self.turn_step
-            ) % len(self.players)
+            self.active_player = self._step(self.active_player)

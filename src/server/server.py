@@ -103,10 +103,30 @@ def process_lobby(from_clients, to_clients, game):
         else:
             server_protocol.send_error_msg(to_clients[source], "Game has not yet begun.")
 
+def process_game(from_clients, to_clients, game):
+    source, message = from_clients.get()
+
+    if message.get("msg_type") == "DRAW":
+        try:
+            game.draw(source, message.get("amount"))
+            server_protocol.send_state_update(to_clients, game)
+        except (RuntimeError, TypeError, ValueError) as msg:
+            server_protocol.send_error_msg(to_clients[source], str(msg))
+    elif message.get("msg_type") == "PLAY":
+        try:
+            game.play_card(source, message.get("card_index"), message.get("chosen_color"))
+            server_protocol.send_state_update(to_clients, game)
+        except (RuntimeError, ValueError, TypeError) as msg:
+            server_protocol.send_error_msg(to_clients[source], str(msg))
+    elif message.get("msg_type") == "ERROR":
+        server_protocol.send_error_msg(to_clients[source], message.get("message"))
+    else:
+        server_protocol.send_error_msg(to_clients[source], "Unrecognized message type.")
+
 def main():
     args = parse_args()
     listener_socket = initialize_listener(args)
-    from_threads = queue.Queue()
+    from_clients = queue.Queue()
     to_clients = {}
     game = Game()
 
@@ -114,7 +134,7 @@ def main():
         target=listener_thread,
         args=(
             listener_socket,
-            from_threads,
+            from_clients,
             game
         ),
         daemon=True
@@ -123,10 +143,10 @@ def main():
 
     print("Waiting for players...")
     while not game.started:
-        process_lobby(from_threads, to_clients, game)
+        process_lobby(from_clients, to_clients, game)
 
-    time.sleep(5)
-    #TODO: process game protocol
+    while not game.finished:
+        process_game(from_clients, to_clients, game)
 
 if __name__ == "__main__":
     main()
