@@ -11,5 +11,7 @@ class GameState:
     my_hand: list[Card]
     opponent_hand_sizes: dict[int, int]
 
-    def update_state(msg):
-        #unpacks the message, validates it, and updates the state
+    def update_state(self, msg):
+        active_color = msg.get("active_color")
+        active_type = msg.get(("active_type"))
+        active_player_id = msg.get("active_player_id")

@@ -43,6 +43,9 @@ class Player:
         except IndexError:
             return None
 
+    def hand_to_dict(self):
+        return [c.to_dict() for c in self.hand]
+
     def __post_init__(self):
         if not isinstance(self.id, int) or isinstance(self.id, bool):
             raise TypeError("player id must be an integer")

@@ -9,6 +9,7 @@ import socket
 import threading
 import queue
 import argparse
+import time
 
 from src.models.game import Game
 from .client_handler import client_handler
@@ -92,15 +93,15 @@ def process_lobby(from_clients, to_clients, game):
         except (ValueError, RuntimeError) as msg:
             server_protocol.send_error_msg(to_client, str(msg), True)
     else:
-        if message.get("msg_type") == "START_GAME":
+        if message.get("msg_type") == "GAME_START":
             try:
                 game.start()
+                server_protocol.send_state_update(to_clients, game)
                 print("Game started!")
             except (ValueError, RuntimeError) as msg:
                 server_protocol.send_error_msg(to_clients[source], str(msg))
         else:
             server_protocol.send_error_msg(to_clients[source], "Game has not yet begun.")
-
 
 def main():
     args = parse_args()
@@ -124,6 +125,7 @@ def main():
     while not game.started:
         process_lobby(from_threads, to_clients, game)
 
+    time.sleep(5)
     #TODO: process game protocol
 
 if __name__ == "__main__":

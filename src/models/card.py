@@ -2,9 +2,9 @@
 #-and checking if it can be played on top of another card
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
-class Color(Enum):
+class Color(StrEnum):
     RED = "RED"
     BLUE = "BLUE"
     GREEN = "GREEN"
@@ -12,17 +12,17 @@ class Color(Enum):
     WILD = "WILD"
 
 
-class CardType(Enum):
-    ZERO = 0
-    ONE = 1
-    TWO = 2
-    THREE = 3
-    FOUR = 4
-    FIVE = 5
-    SIX = 6
-    SEVEN = 7
-    EIGHT = 8
-    NINE = 9
+class CardType(StrEnum):
+    ZERO = "0"
+    ONE = "1"
+    TWO = "2"
+    THREE = "3"
+    FOUR = "4"
+    FIVE = "5"
+    SIX = "6"
+    SEVEN = "7"
+    EIGHT = "8"
+    NINE = "9"
     SKIP = "SKIP"
     REVERSE = "REVERSE"
     DRAW_TWO = "DRAW_TWO"
@@ -43,6 +43,9 @@ class Card:
             or self.type == CardType.WILD
             or active_color == CardType.WILD
         )
+
+    def to_dict(self):
+        return {"color": self.color, "type": self.type}
 
     def __post_init__(self):
 

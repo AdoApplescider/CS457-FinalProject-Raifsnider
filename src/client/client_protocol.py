@@ -16,3 +16,10 @@ def send_play_request(outgoing, card_index, chosen_color=None):
         }
 
     outgoing.put(msg)
+
+def send_game_start(outgoing):
+    msg = {
+            "msg_type": "GAME_START"
+        }
+
+    outgoing.put(msg)

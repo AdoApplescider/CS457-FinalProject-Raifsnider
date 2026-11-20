@@ -46,6 +46,7 @@ def handle_generic_msg(msg, client_socket):
     try:
         serialized_msg = json.dumps(msg) + "\n"
         client_socket.sendall(serialized_msg.encode("utf-8"))
+        print(msg)
 
     except (TypeError, ValueError) as e:
         raise ValueError(f"Invalid message format: {e}")
@@ -61,26 +62,24 @@ def handle_error(msg, client_socket):
 
     return True
 
-def receive_from_socket(client_socket, from_client, msg):
-    while True:
-        try:
-            if b"\n" not in msg:
-                data = client_socket.recv(4096)
+def receive_from_socket(client_socket, from_client, buffer):
+    try:
+        data = client_socket.recv(4096)
+    except socket.timeout:
+        return buffer
 
-                if not data:
-                    raise ConnectionError("Client disconnected.")
+    if not data:
+        raise ConnectionError("Client disconnected.")
 
-                msg += data
+    buffer += data
 
-            while b"\n" in msg:
-                raw_msg, msg = msg.split(b"\n", 1)
+    while b"\n" in buffer:
+        raw_msg, buffer = buffer.split(b"\n", 1)
+        if not raw_msg.strip():
+            continue
+        from_client.put(json.loads(raw_msg.decode("utf-8")))
 
-                if raw_msg:
-                    parsed_msg = json.loads(raw_msg.decode("utf-8"))
-                    from_client.put(parsed_msg)
-
-        except socket.timeout:
-            return msg
+    return buffer
 
 def process_server_msg(from_server, client_socket):
     msg = from_server.get()
@@ -95,7 +94,7 @@ def process_server_msg(from_server, client_socket):
 def process_client_msg(from_client, to_server, player_id):
     msg = from_client.get()
     match msg.get("msg_type"):
-            case "START_GAME" | "DRAW" | "PLACE":
+            case "GAME_START" | "DRAW" | "PLACE":
                 to_server.put((player_id, msg))
             case _:
                 to_server.put((
